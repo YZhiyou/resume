@@ -207,9 +207,12 @@ section{position:relative;z-index:10}
 @keyframes fadeDown{0%{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
 
 @media (max-width:900px){
-  .resume-grid{grid-template-columns:1fr;gap:0;margin-top:6vh}
-  .resume-stage{position:relative;height:52vh;order:-1;margin-bottom:5vh}
-  .stage-caption{bottom:4vh}
+  .resume-grid{display:block;position:relative;gap:0;margin-top:6vh}
+  .resume-stage{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:0;opacity:0;transition:opacity .35s ease;pointer-events:none}
+  .resume-stage.stage-on{opacity:1}
+  .resume-stage::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(10,14,22,.15) 30%,rgba(10,14,22,.55) 65%,#0a0e16aa 100%);pointer-events:none}
+  .resume-main{position:relative;z-index:1;padding:8vh 0 4vh}
+  .stage-caption{display:none}
   .resume-main .tl-entry{padding-bottom:14vh}
   .resume-main .tl-entry:last-child{padding-bottom:8vh}
 }
@@ -221,6 +224,8 @@ section{position:relative;z-index:10}
   .hero-chrome{--m:12px}
   .credit{top:14px}
   .detail{padding:44px 26px}
+  #stageSvg .art svg{filter:drop-shadow(0 0 8px rgba(216,185,138,.06))}
+  #stageSvg .halo{opacity:.06}
 }
 </style>
 </head>
@@ -1266,6 +1271,8 @@ function initStage(){
   const gateG=buildArt('gate'), pengG=buildArt('tencent'), byteG=buildArt('bytedance');
   svg.append(gateG,pengG,byteG);
 
+  const stageEl=svg.closest('.resume-stage');
+
   function absTop(el){return el.getBoundingClientRect().top+window.scrollY;}
   function blockProgress(el){const top=absTop(el);const h=el.offsetHeight;const focus=window.scrollY+window.innerHeight*0.5;return clamp((focus-top)/Math.max(h,1),0,1);}
   function setCaption(phase){
@@ -1282,7 +1289,10 @@ function initStage(){
   function animate(){
     requestAnimationFrame(animate);
     const r=resumeSec.getBoundingClientRect();
-    if(r.bottom<-100||r.top>window.innerHeight+100){return;} // off-screen: skip
+    const workBottom=workEl.getBoundingClientRect().bottom;
+    const inView=workBottom>window.innerHeight*0.35&&r.top<window.innerHeight-80;
+    stageEl.classList.toggle('stage-on',inView);
+    if(!inView){return;}
     t+=0.016;
     const eduP=blockProgress(eduEl);
     const workP=blockProgress(workEl);
